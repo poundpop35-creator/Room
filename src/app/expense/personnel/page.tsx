@@ -28,6 +28,7 @@ export default function ExpensePersonnelPage() {
         columns={columns}
         hasQuarters
         groupBy="subcategory"
+        showCode
       />
     </div>
   );

@@ -26,6 +26,7 @@ const cfg = {
   ],
   hasQuarters: true,
   computeAmount: true,
+  hasCode: true,
 };
 
 export const { PUT, DELETE } = makeItemRoute(cfg);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { getDb } from "./db";
+import { getDb, nextItemCode } from "./db";
 
 // Generic CRUD factory for the "item list" tables (1.1, 2.1-2.5, carryover).
 // All of these tables share the same shape: organization_name + a handful of
@@ -16,6 +16,8 @@ export interface ItemsRouteConfig {
   hasQuarters?: boolean;
   // If true (investment table), adds a computed `amount` = quantity * unit_price.
   computeAmount?: boolean;
+  // If true, a shared running 6-digit "code" is assigned on create (see nextItemCode).
+  hasCode?: boolean;
 }
 
 function withComputed(row: Record<string, unknown>, cfg: ItemsRouteConfig) {
@@ -59,9 +61,11 @@ export function makeCollectionRoute(cfg: ItemsRouteConfig) {
       );
     }
     const id = randomUUID();
-    const cols = ["id", "organization_name", ...cfg.fields];
+    const code = cfg.hasCode ? nextItemCode(db) : null;
+    const cols = ["id", ...(cfg.hasCode ? ["code"] : []), "organization_name", ...cfg.fields];
     const values = cols.map((c) => {
       if (c === "id") return id;
+      if (c === "code") return code;
       if (c === "organization_name") return body.organization_name;
       if (cfg.numericFields?.includes(c)) return Number(body[c] ?? 0);
       return body[c] ?? null;

@@ -53,7 +53,7 @@ export function OverviewTable({
   if (!organization) {
     return (
       <p className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-700">
-        กรุณาพิมพ์ชื่อหน่วยงานที่แถบด้านบนก่อน จึงจะดูข้อมูลได้
+        กรุณาเลือกหน่วยงานที่แถบด้านบนก่อน จึงจะดูข้อมูลได้
       </p>
     );
   }

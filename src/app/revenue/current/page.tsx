@@ -22,7 +22,7 @@ export default function RevenueCurrentPage() {
         title="1.1 รายรับปีปัจจุบัน"
         subtitle="กรอกแผนรายรับรายไตรมาส แยกตามหมวดหมู่ — ยอดจากหน้านี้จะรวมไปที่หน้า '1. ภาพรวมรายรับ' โดยอัตโนมัติ"
       />
-      <ItemsTable apiPath="/api/revenue-items" columns={columns} hasQuarters groupBy="category" />
+      <ItemsTable apiPath="/api/revenue-items" columns={columns} hasQuarters groupBy="category" showCode />
     </div>
   );
 }

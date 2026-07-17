@@ -28,6 +28,7 @@ function createDb(): Database.Database {
     -- 1.1 รายรับปีปัจจุบัน
     CREATE TABLE IF NOT EXISTS revenue_current_year_items (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       organization_name TEXT NOT NULL,
       category TEXT NOT NULL,
       item_name TEXT NOT NULL,
@@ -56,6 +57,7 @@ function createDb(): Database.Database {
     -- 2.1 รายจ่ายบุคลากร
     CREATE TABLE IF NOT EXISTS expense_personnel_items (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       organization_name TEXT NOT NULL,
       employee_name TEXT,
       subcategory TEXT NOT NULL,
@@ -72,6 +74,7 @@ function createDb(): Database.Database {
     -- 2.2 รายจ่ายพื้นฐาน
     CREATE TABLE IF NOT EXISTS expense_basic_items (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       organization_name TEXT NOT NULL,
       subcategory TEXT NOT NULL,
       item_name TEXT NOT NULL,
@@ -87,6 +90,7 @@ function createDb(): Database.Database {
     -- 2.3 รายจ่ายบริการ
     CREATE TABLE IF NOT EXISTS expense_service_items (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       organization_name TEXT NOT NULL,
       subcategory TEXT NOT NULL,
       item_name TEXT NOT NULL,
@@ -102,6 +106,7 @@ function createDb(): Database.Database {
     -- 2.4 รายจ่ายขับเคลื่อน (โครงการ)
     CREATE TABLE IF NOT EXISTS expense_project_items (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       organization_name TEXT NOT NULL,
       project_name TEXT NOT NULL,
       item_name TEXT NOT NULL,
@@ -119,6 +124,7 @@ function createDb(): Database.Database {
     -- 2.5 รายจ่ายลงทุน
     CREATE TABLE IF NOT EXISTS expense_investment_items (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       organization_name TEXT NOT NULL,
       subcategory TEXT NOT NULL,
       equipment_type TEXT,
@@ -168,6 +174,13 @@ function createDb(): Database.Database {
     );
   }
 
+  const nextCodeRow = db
+    .prepare("SELECT value FROM settings WHERE key = 'next_code'")
+    .get();
+  if (!nextCodeRow) {
+    db.prepare("INSERT INTO settings (key, value) VALUES ('next_code', '1')").run();
+  }
+
   return db;
 }
 
@@ -176,4 +189,18 @@ export function getDb(): Database.Database {
     global.__budgetDb = createDb();
   }
   return global.__budgetDb;
+}
+
+// Single running 6-digit code shared across every organization and every
+// entry table (1.1, 2.1-2.5) — e.g. "000001", "000002", ... — assigned once
+// per created row and never reused.
+export function nextItemCode(db: Database.Database): string {
+  const row = db
+    .prepare("SELECT value FROM settings WHERE key = 'next_code'")
+    .get() as { value: string };
+  const current = Number(row.value);
+  db.prepare("UPDATE settings SET value = ? WHERE key = 'next_code'").run(
+    String(current + 1)
+  );
+  return String(current).padStart(6, "0");
 }

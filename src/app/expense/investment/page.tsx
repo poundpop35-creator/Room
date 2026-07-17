@@ -38,6 +38,7 @@ export default function ExpenseInvestmentPage() {
         columns={columns}
         hasQuarters
         groupBy="subcategory"
+        showCode
       />
     </div>
   );

@@ -28,6 +28,7 @@ export default function ExpenseProjectPage() {
         columns={columns}
         hasQuarters
         addButtonLabel="+ เพิ่มรายการ/โครงการ"
+        showCode
       />
     </div>
   );

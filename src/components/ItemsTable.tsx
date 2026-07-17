@@ -24,6 +24,8 @@ interface ItemsTableProps {
   groupBy?: string; // column key to group rows into sections with subtotals
   addButtonLabel?: string;
   defaults?: Partial<Row>;
+  // Shows a read-only "รหัส" column (server-assigned running 6-digit code) first.
+  showCode?: boolean;
 }
 
 function quartersTotal(row: Row) {
@@ -42,6 +44,7 @@ export function ItemsTable({
   groupBy,
   addButtonLabel = "+ เพิ่มรายการ",
   defaults = {},
+  showCode,
 }: ItemsTableProps) {
   const { organization } = useOrg();
   const [rows, setRows] = useState<Row[]>([]);
@@ -104,7 +107,7 @@ export function ItemsTable({
   if (!organization) {
     return (
       <p className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-700">
-        กรุณาพิมพ์ชื่อหน่วยงานที่แถบด้านบนก่อน จึงจะกรอกข้อมูลได้
+        กรุณาเลือกหน่วยงานที่แถบด้านบนก่อน จึงจะกรอกข้อมูลได้
       </p>
     );
   }
@@ -144,6 +147,9 @@ export function ItemsTable({
               <table className="w-full min-w-max border-collapse text-sm">
                 <thead>
                   <tr className="bg-slate-50 text-left text-xs text-slate-500">
+                    {showCode && (
+                      <th className="border-b border-slate-200 px-2 py-2 font-medium">รหัส</th>
+                    )}
                     {visibleColumns.map((c) => (
                       <th key={c.key} className="border-b border-slate-200 px-2 py-2 font-medium">
                         {c.label}
@@ -161,7 +167,9 @@ export function ItemsTable({
                   {groupRows.length === 0 && (
                     <tr>
                       <td
-                        colSpan={visibleColumns.length + (hasQuarters ? 2 : 1)}
+                        colSpan={
+                          visibleColumns.length + (hasQuarters ? 2 : 1) + (showCode ? 1 : 0)
+                        }
                         className="px-2 py-3 text-center text-slate-400"
                       >
                         ยังไม่มีรายการ
@@ -170,6 +178,11 @@ export function ItemsTable({
                   )}
                   {groupRows.map((row) => (
                     <tr key={row.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      {showCode && (
+                        <td className="px-2 py-1.5 font-mono text-slate-500">
+                          {row.code ?? "—"}
+                        </td>
+                      )}
                       {visibleColumns.map((c) => (
                         <td key={c.key} className={`px-2 py-1.5 ${c.width ?? ""}`}>
                           {c.showIf && !c.showIf(row) ? (

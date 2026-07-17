@@ -12,9 +12,12 @@
 
 var SHEET_HEADERS = {
   Settings: ["key", "value"],
+  // "code" is appended last (not inserted next to "id") so that re-running
+  // setupSheets() on a sheet that already has data never shifts existing
+  // columns out from under their values.
   RevenueCurrentYearItems: [
     "id", "organization_name", "category", "item_name",
-    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at",
+    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at", "code",
   ],
   RevenueYearlyOverview: [
     "organization_name", "category",
@@ -22,25 +25,25 @@ var SHEET_HEADERS = {
   ],
   ExpensePersonnelItems: [
     "id", "organization_name", "employee_name", "subcategory", "item_name",
-    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at",
+    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at", "code",
   ],
   ExpenseBasicItems: [
     "id", "organization_name", "subcategory", "item_name",
-    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at",
+    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at", "code",
   ],
   ExpenseServiceItems: [
     "id", "organization_name", "subcategory", "item_name",
-    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at",
+    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at", "code",
   ],
   ExpenseProjectItems: [
     "id", "organization_name", "project_name", "item_name",
     "q1_plan", "q2_plan", "q3_plan", "q4_plan",
-    "reason", "expected_output", "responsible", "note", "created_at",
+    "reason", "expected_output", "responsible", "note", "created_at", "code",
   ],
   ExpenseInvestmentItems: [
     "id", "organization_name", "subcategory", "equipment_type", "item_name",
     "unit", "quantity", "unit_price",
-    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at",
+    "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note", "created_at", "code",
   ],
   ExpenseYearlyOverview: [
     "organization_name", "category",
@@ -59,24 +62,28 @@ var RESOURCE_CONFIG = {
     fields: ["category", "item_name", "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note"],
     numericFields: ["q1_plan", "q2_plan", "q3_plan", "q4_plan"],
     hasQuarters: true,
+    hasCode: true,
   },
   "expense-personnel": {
     sheet: "ExpensePersonnelItems",
     fields: ["employee_name", "subcategory", "item_name", "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note"],
     numericFields: ["q1_plan", "q2_plan", "q3_plan", "q4_plan"],
     hasQuarters: true,
+    hasCode: true,
   },
   "expense-basic": {
     sheet: "ExpenseBasicItems",
     fields: ["subcategory", "item_name", "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note"],
     numericFields: ["q1_plan", "q2_plan", "q3_plan", "q4_plan"],
     hasQuarters: true,
+    hasCode: true,
   },
   "expense-service": {
     sheet: "ExpenseServiceItems",
     fields: ["subcategory", "item_name", "q1_plan", "q2_plan", "q3_plan", "q4_plan", "responsible", "note"],
     numericFields: ["q1_plan", "q2_plan", "q3_plan", "q4_plan"],
     hasQuarters: true,
+    hasCode: true,
   },
   "expense-project": {
     sheet: "ExpenseProjectItems",
@@ -86,6 +93,7 @@ var RESOURCE_CONFIG = {
     ],
     numericFields: ["q1_plan", "q2_plan", "q3_plan", "q4_plan"],
     hasQuarters: true,
+    hasCode: true,
   },
   "expense-investment": {
     sheet: "ExpenseInvestmentItems",
@@ -96,6 +104,7 @@ var RESOURCE_CONFIG = {
     numericFields: ["quantity", "unit_price", "q1_plan", "q2_plan", "q3_plan", "q4_plan"],
     hasQuarters: true,
     computeAmount: true,
+    hasCode: true,
   },
   carryover: {
     sheet: "CarryoverItems",
@@ -137,6 +146,8 @@ function setupSheets() {
   var values = settings.getDataRange().getValues();
   var hasFiscalYear = values.some(function (row, i) { return i > 0 && row[0] === "fiscal_year"; });
   if (!hasFiscalYear) settings.appendRow(["fiscal_year", "2569"]);
+  var hasNextCode = values.some(function (row, i) { return i > 0 && row[0] === "next_code"; });
+  if (!hasNextCode) settings.appendRow(["next_code", "1"]);
 
   SpreadsheetApp.getUi().alert(
     "ตั้งค่าชีทเรียบร้อย ไปที่ Deploy > New deployment > Web app เพื่อเผยแพร่ต่อได้เลย"
@@ -245,6 +256,7 @@ function createResourceItem_(resourceKey, body) {
     organization_name: body.organization_name || "",
     created_at: new Date().toISOString(),
   };
+  if (cfg.hasCode) obj.code = nextCode_();
   cfg.fields.forEach(function (f) {
     var v = body[f];
     obj[f] = cfg.numericFields && cfg.numericFields.indexOf(f) >= 0 ? Number(v || 0) : v == null ? "" : v;
@@ -447,6 +459,22 @@ function setFiscalYear_(year) {
   var updated = updateRowByMatch_("Settings", function (r) { return r.key === "fiscal_year"; }, { value: String(year) });
   if (!updated) appendRow_("Settings", { key: "fiscal_year", value: String(year) });
   return { fiscal_year: year };
+}
+
+// Single running 6-digit code shared across every organization and every
+// entry sheet (1.1, 2.1-2.5) — e.g. "000001", "000002", ... — assigned once
+// per created row and never reused. Mirrors src/lib/db.ts nextItemCode().
+function nextCode_() {
+  var rows = readAllRows_("Settings");
+  var row = rows.filter(function (r) { return r.key === "next_code"; })[0];
+  var current = row ? Number(row.value) : 1;
+  var updated = updateRowByMatch_("Settings", function (r) { return r.key === "next_code"; }, {
+    value: String(current + 1),
+  });
+  if (!updated) appendRow_("Settings", { key: "next_code", value: String(current + 1) });
+  var padded = String(current);
+  while (padded.length < 6) padded = "0" + padded;
+  return padded;
 }
 
 // ---------- HTTP entry points ----------

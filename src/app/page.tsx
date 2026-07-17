@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useOrg } from "@/components/OrgContext";
+import { ORGANIZATIONS } from "@/lib/constants";
 
 const SECTIONS = [
   {
@@ -46,19 +47,26 @@ export default function Home() {
 
         {ready && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <label className="text-sm text-slate-600">ชื่อหน่วยงาน/กลุ่มงานของคุณ:</label>
-            <input
-              key={organization}
-              defaultValue={organization}
-              onBlur={(e) => setOrganization(e.target.value.trim())}
-              placeholder="เช่น กลุ่มงานพัฒนาคุณภาพและรูปแบบบริการ"
+            <label className="text-sm text-slate-600">หน่วยงาน/กลุ่มงานของคุณ:</label>
+            <select
+              value={organization}
+              onChange={(e) => setOrganization(e.target.value)}
               className="w-80 max-w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-500 focus:outline-none"
-            />
+            >
+              <option value="" disabled>
+                เลือกหน่วยงาน...
+              </option>
+              {ORGANIZATIONS.map((org) => (
+                <option key={org} value={org}>
+                  {org}
+                </option>
+              ))}
+            </select>
           </div>
         )}
         {ready && !organization && (
           <p className="mt-2 text-sm text-amber-600">
-            ⚠ พิมพ์ชื่อหน่วยงานก่อนเริ่มกรอกข้อมูล (ระบบจะจำไว้ให้อัตโนมัติในเครื่องนี้)
+            ⚠ เลือกหน่วยงานก่อนเริ่มกรอกข้อมูล (ระบบจะจำไว้ให้อัตโนมัติในเครื่องนี้)
           </p>
         )}
       </div>

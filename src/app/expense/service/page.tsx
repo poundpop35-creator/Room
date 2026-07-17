@@ -27,6 +27,7 @@ export default function ExpenseServicePage() {
         columns={columns}
         hasQuarters
         groupBy="subcategory"
+        showCode
       />
     </div>
   );

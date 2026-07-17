@@ -15,6 +15,7 @@ const cfg = {
   ],
   numericFields: ["q1_plan", "q2_plan", "q3_plan", "q4_plan"],
   hasQuarters: true,
+  hasCode: true,
 };
 
 export const { GET, POST } = makeCollectionRoute(cfg);

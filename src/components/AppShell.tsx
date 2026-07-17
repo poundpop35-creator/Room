@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useOrg } from "./OrgContext";
+import { ORGANIZATIONS } from "@/lib/constants";
 
 const NAV_GROUPS: { title: string; links: { href: string; label: string }[] }[] = [
   {
@@ -93,16 +94,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-1.5">
             <label className="text-sm text-slate-500">หน่วยงาน:</label>
-            <input
-              key={organization}
-              defaultValue={organization}
-              onBlur={(e) => setOrganization(e.target.value.trim())}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-              }}
-              placeholder="พิมพ์ชื่อหน่วยงาน/กลุ่มงาน"
-              className="w-56 rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
-            />
+            <select
+              value={organization}
+              onChange={(e) => setOrganization(e.target.value)}
+              className="w-64 rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
+            >
+              <option value="" disabled>
+                เลือกหน่วยงาน...
+              </option>
+              {ORGANIZATIONS.map((org) => (
+                <option key={org} value={org}>
+                  {org}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -124,7 +129,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           {ready && !organization && (
             <span className="text-sm text-amber-600">
-              ⚠ กรุณาพิมพ์ชื่อหน่วยงานก่อนเริ่มกรอกข้อมูล
+              ⚠ กรุณาเลือกหน่วยงานก่อนเริ่มกรอกข้อมูล
             </span>
           )}
         </header>
