@@ -5,6 +5,7 @@ import { useOrg } from "@/components/OrgContext";
 import { PageHeader } from "@/components/PageHeader";
 import { ItemsTable, ColumnSpec } from "@/components/ItemsTable";
 import { formatBaht } from "@/lib/format";
+import { apiFetch } from "@/lib/apiClient";
 
 interface DashboardData {
   organization_name: string;
@@ -29,7 +30,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!organization) return;
     setLoading(true);
-    fetch(`/api/dashboard?organization=${encodeURIComponent(organization)}`)
+    apiFetch(`/api/dashboard?organization=${encodeURIComponent(organization)}`)
       .then((r) => r.json())
       .then(setData)
       .finally(() => setLoading(false));

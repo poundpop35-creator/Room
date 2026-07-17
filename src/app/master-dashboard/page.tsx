@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { formatBaht } from "@/lib/format";
+import { apiFetch } from "@/lib/apiClient";
 
 interface OrgDashboard {
   organization_name: string;
@@ -22,7 +23,7 @@ export default function MasterDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/master-dashboard")
+    apiFetch("/api/master-dashboard")
       .then((r) => r.json())
       .then(setData)
       .finally(() => setLoading(false));

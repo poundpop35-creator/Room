@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
   ReactNode,
 } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
 interface OrgContextValue {
   organization: string;
@@ -46,14 +47,14 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    fetch("/api/settings")
+    apiFetch("/api/settings")
       .then((r) => r.json())
       .then((d) => setFiscalYearState(d.fiscal_year))
       .finally(() => setReady(true));
   }, []);
 
   async function setFiscalYear(year: number) {
-    const res = await fetch("/api/settings", {
+    const res = await apiFetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fiscal_year: year }),

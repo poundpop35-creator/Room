@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useOrg } from "./OrgContext";
 import { formatBaht } from "@/lib/format";
+import { apiFetch } from "@/lib/apiClient";
 
 export interface ColumnSpec {
   key: string;
@@ -52,7 +53,7 @@ export function ItemsTable({
     // nothing to reset here.
     if (!organization) return;
     setLoading(true);
-    fetch(`${apiPath}?organization=${encodeURIComponent(organization)}`)
+    apiFetch(`${apiPath}?organization=${encodeURIComponent(organization)}`)
       .then((r) => r.json())
       .then((d) => setRows(d))
       .finally(() => setLoading(false));
@@ -69,7 +70,7 @@ export function ItemsTable({
         body[c.key] = c.type === "number" ? 0 : "";
       }
     }
-    const res = await fetch(apiPath, {
+    const res = await apiFetch(apiPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -87,7 +88,7 @@ export function ItemsTable({
   }
 
   function saveRow(row: Row) {
-    fetch(`${apiPath}/${row.id}`, {
+    apiFetch(`${apiPath}/${row.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(row),
@@ -97,7 +98,7 @@ export function ItemsTable({
   async function deleteRow(row: Row) {
     if (!confirm(`ลบรายการ "${row.item_name ?? row.id}" ?`)) return;
     setRows((prev) => prev.filter((r) => r.id !== row.id));
-    await fetch(`${apiPath}/${row.id}`, { method: "DELETE" });
+    await apiFetch(`${apiPath}/${row.id}`, { method: "DELETE" });
   }
 
   if (!organization) {

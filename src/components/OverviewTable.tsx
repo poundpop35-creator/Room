@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useOrg } from "./OrgContext";
 import { formatBaht } from "@/lib/format";
+import { apiFetch } from "@/lib/apiClient";
 
 interface OverviewRow {
   organization_name: string;
@@ -29,7 +30,7 @@ export function OverviewTable({
   useEffect(() => {
     if (!organization) return;
     setLoading(true);
-    fetch(`${apiPath}?organization=${encodeURIComponent(organization)}`)
+    apiFetch(`${apiPath}?organization=${encodeURIComponent(organization)}`)
       .then((r) => r.json())
       .then((d) => setRows(d))
       .finally(() => setLoading(false));
@@ -42,7 +43,7 @@ export function OverviewTable({
   }
 
   function save(row: OverviewRow) {
-    fetch(apiPath, {
+    apiFetch(apiPath, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(row),
