@@ -3,7 +3,10 @@ import path from "path";
 import fs from "fs";
 import { DEFAULT_FISCAL_YEAR } from "./constants";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+// On a real deploy, point DATA_DIR at a mounted persistent disk (e.g. Render
+// disks, Railway volumes) — otherwise the SQLite file lives on ephemeral
+// storage and every redeploy/restart wipes all entered data.
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_PATH = path.join(DATA_DIR, "budget.db");
 
